@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Message Router</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f24;--muted:#5b6570;--line:#dde1e6;--accent:#1f6feb;--err:#cf222e}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1317;--card:#171c22;--text:#e8ebef;--muted:#98a2ad;--line:#2a323b;--accent:#58a6ff;--err:#ff7b72}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+textarea{width:100%;min-height:90px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
+button{margin-top:10px;font:inherit;cursor:pointer;border:0;border-radius:8px;background:var(--accent);color:#fff;padding:8px 14px}
+.muted{color:var(--muted);font-size:.9rem}.err{color:var(--err)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Message Router</h1>
+  <p class="muted">Type a customer message to see which team it is routed to. Demo only: nothing is sent.</p>
+  <div class="card">
+    <textarea id="msg" placeholder="e.g. My card was declined"></textarea>
+    <button id="go">Route</button>
+  </div>
+  <div class="card" id="out" hidden></div>
+</main>
+<script>
+document.getElementById("go").onclick = async () => {
+  const out = document.getElementById("out");
+  out.hidden = false; out.textContent = "…";
+  try {
+    const res = await fetch("/api/route", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: document.getElementById("msg").value})
+    });
+    const data = await res.json();
+    out.className = "card" + (res.ok ? "" : " err");
+    out.textContent = res.ok ? data.category + " → " + data.team : "Error: " + data.error;
+  } catch (e) {
+    out.className = "card err"; out.textContent = "Could not reach the server.";
+  }
+};
+</script>
+</body>
+</html>
